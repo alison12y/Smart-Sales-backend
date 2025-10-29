@@ -1,0 +1,48 @@
+# Python / Django
+__pycache__/
+*.py[cod]
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+db.sqlite3
+
+# Entornos virtuales
+env/
+.venv/
+
+# Variables de entorno
+.env
+*.env
+
+# Archivos de compilación / cache
+*.egg-info/
+.eggs/
+*.egg
+pip-wheel-metadata/
+*.manifest
+*.spec
+
+# Django static/media generados en deploy
+static/
+staticfiles/
+media/
+
+# IDEs/editores
+.vscode/
+.idea/
+*.swp
+
+# SO
+.DS_Store
+Thumbs.db
+
+# Coverage / testing
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Node (si más adelante pones algo de front en este repo)
+node_modules/
