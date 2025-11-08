@@ -19,7 +19,11 @@ class ProductoPromocionSerializer(serializers.ModelSerializer):
 
 class NotificacionSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True)
+    
     class Meta:
         model = Notificacion
         fields = ['id','user','username','titulo','mensaje','tipo','leido','fecha_envio']
         read_only_fields = ['id','username','fecha_envio']
+        extra_kwargs = {
+            'user': {'required': False, 'allow_null': True}
+        }
