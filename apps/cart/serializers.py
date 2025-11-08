@@ -3,13 +3,21 @@ from .models import Carrito, DetalleCarrito
 from apps.catalog.models import Producto
 
 class DetalleCarritoSerializer(serializers.ModelSerializer):
-    nombre_producto = serializers.CharField(source='producto.nombre', read_only=True)
+    nombre_producto = serializers.CharField(source="producto.nombre", read_only=True)
     subtotal = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
 
     class Meta:
         model = DetalleCarrito
-        fields = ['id', 'producto', 'nombre_producto', 'cantidad', 'precio_unitario', 'subtotal']
-        read_only_fields = ['id', 'nombre_producto', 'subtotal']
+        fields = [
+            "id",
+            "producto",
+            "nombre_producto",
+            "cantidad",
+            "precio_unitario",
+            "subtotal",
+        ]
+        read_only_fields = ["id", "nombre_producto", "subtotal"]
+
 
 class CarritoSerializer(serializers.ModelSerializer):
     detalles = DetalleCarritoSerializer(many=True, read_only=True)
@@ -17,21 +25,60 @@ class CarritoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Carrito
-        fields = ['id', 'cliente', 'estado', 'fecha_creacion', 'actualizado_en', 'detalles', 'total']
-        read_only_fields = ['id', 'fecha_creacion', 'actualizado_en', 'detalles', 'total']
+        fields = [
+            "id",
+            "cliente",
+            "estado",
+            "fecha_creacion",
+            "actualizado_en",
+            "detalles",
+            "total",
+        ]
+        read_only_fields = [
+            "id",
+            "fecha_creacion",
+            "actualizado_en",
+            "detalles",
+            "total",
+        ]
+
 
 class AddItemSerializer(serializers.Serializer):
+    """Validador para AÑADIR items (valida stock)"""
+
     producto_id = serializers.IntegerField()
     cantidad = serializers.IntegerField(min_value=1)
 
     def validate(self, data):
         try:
-            producto = Producto.objects.get(pk=data['producto_id'])
+            producto = Producto.objects.get(pk=data["producto_id"])
         except Producto.DoesNotExist:
             raise serializers.ValidationError("Producto no existe.")
-        if producto.estado != 'activo':
+
+        if producto.estado != "activo":
             raise serializers.ValidationError("Producto no disponible.")
-        if producto.stock < data['cantidad']:
+
+        # Esta es la validación clave de este serializer
+        if producto.stock < data["cantidad"]:
             raise serializers.ValidationError("Stock insuficiente.")
-        data['producto'] = producto
+
+        data["producto"] = producto
+        return data
+
+
+class UpdateItemSerializer(serializers.Serializer):
+    """
+    Validador para MODIFICAR/ELIMINAR items 
+    """
+
+    producto_id = serializers.IntegerField()
+    cantidad = serializers.IntegerField(min_value=1)  # Cantidad a restar
+
+    def validate(self, data):
+        try:
+            producto = Producto.objects.get(pk=data["producto_id"])
+        except Producto.DoesNotExist:
+            raise serializers.ValidationError("Producto no existe.")
+
+        data["producto"] = producto
         return data

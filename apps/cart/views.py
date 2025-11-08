@@ -1,4 +1,4 @@
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ReadOnlyModelViewSet 
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
@@ -7,19 +7,25 @@ from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
 
 from .models import Carrito, DetalleCarrito
-from .serializers import CarritoSerializer, DetalleCarritoSerializer, AddItemSerializer
+from .serializers import ( 
+    CarritoSerializer, 
+    AddItemSerializer, 
+    UpdateItemSerializer
+)
 from apps.customers.models import Cliente
 
-class CarritoViewSet(ModelViewSet):
+class CarritoViewSet(ReadOnlyModelViewSet): 
+    """
+    ViewSet para el Carrito.
+    """
     serializer_class = CarritoSerializer
     permission_classes = [IsAuthenticated]
-
+    
     def get_queryset(self):
         qs = Carrito.objects.select_related('cliente__user').prefetch_related('detalles__producto')
         user = self.request.user
         if user.is_staff or user.is_superuser:
-            return qs.order_by('-id')  # admin ve todos
-        # cliente normal: solo sus carritos
+            return qs.order_by('-id')
         try:
             cliente = user.cliente
         except Cliente.DoesNotExist:
@@ -28,13 +34,11 @@ class CarritoViewSet(ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='mi-activo')
     def mi_activo(self, request):
-        """Devuelve (o crea) el carrito activo del usuario actual."""
         user = request.user
         try:
             cliente = user.cliente
         except Cliente.DoesNotExist:
             return Response({"detail": "Este usuario no tiene perfil de cliente."}, status=400)
-
         carrito, _ = Carrito.objects.get_or_create(cliente=cliente, estado='activo')
         data = CarritoSerializer(carrito).data
         return Response(data)
@@ -43,45 +47,49 @@ class CarritoViewSet(ModelViewSet):
     @transaction.atomic
     def add_item(self, request):
         """Agrega o incrementa un producto en el carrito activo del usuario."""
-        s = AddItemSerializer(data=request.data)
+        
+        # Usamos el serializer que SÍ valida stock
+        s = AddItemSerializer(data=request.data) 
+        
         s.is_valid(raise_exception=True)
         producto = s.validated_data['producto']
         cantidad = s.validated_data['cantidad']
-
+        
+        # ... (El resto de tu lógica de add_item es perfecta y se queda igual) ...
         user = request.user
         try:
             cliente = user.cliente
         except Cliente.DoesNotExist:
             return Response({"detail": "Este usuario no tiene perfil de cliente."}, status=400)
-
         carrito, _ = Carrito.objects.get_or_create(cliente=cliente, estado='activo')
-
         detalle, created = DetalleCarrito.objects.select_for_update().get_or_create(
             carrito=carrito, producto=producto,
             defaults={'cantidad': 0, 'precio_unitario': producto.precio}
         )
-        # actualizar cantidad y snapshot de precio (por si cambió)
         detalle.cantidad += cantidad
         detalle.precio_unitario = producto.precio
         detalle.save()
-
         return Response(CarritoSerializer(carrito).data, status=status.HTTP_200_OK)
+
 
     @action(detail=False, methods=['post'], url_path='remove-item')
     @transaction.atomic
     def remove_item(self, request):
         """Decrementa o elimina un producto del carrito activo."""
-        s = AddItemSerializer(data=request.data)
+        
+        # --- MEJORA: Usamos el nuevo serializer que NO valida stock ---
+        s = UpdateItemSerializer(data=request.data)
+        
         s.is_valid(raise_exception=True)
         producto = s.validated_data['producto']
         cantidad = s.validated_data['cantidad']
 
+        # ... (El resto de tu lógica de remove_item es perfecta y se queda igual) ...
         user = request.user
         try:
             cliente = user.cliente
         except Cliente.DoesNotExist:
             return Response({"detail": "Este usuario no tiene perfil de cliente."}, status=400)
-
         try:
             carrito = Carrito.objects.get(cliente=cliente, estado='activo')
             detalle = DetalleCarrito.objects.select_for_update().get(carrito=carrito, producto=producto)
@@ -94,12 +102,10 @@ class CarritoViewSet(ModelViewSet):
         else:
             detalle.cantidad = nueva
             detalle.save()
-
         return Response(CarritoSerializer(carrito).data)
 
     @action(detail=False, methods=['post'], url_path='clear')
     def clear(self, request):
-        """Vacía el carrito activo del usuario."""
         user = request.user
         try:
             cliente = user.cliente
