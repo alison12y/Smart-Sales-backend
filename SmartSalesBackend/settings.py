@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # --- Seguridad y entorno ---
 SECRET_KEY = config('SECRET_KEY', default='CHANGE_ME')
 DEBUG = config('DEBUG', default=False, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost', cast=Csv())
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'smart-sales-backend.onrender.com']
 
 AUTH_USER_MODEL = 'accounts.User'
 
