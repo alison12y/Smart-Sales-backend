@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 from pathlib import Path
 from decouple import config, Csv
+import os
+import dj_database_url
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -83,17 +86,22 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'SmartSalesBackend.wsgi.application'
 
-# --- Base de datos (PostgreSQL desde .env) ---
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('PG_NAME'),
-        'USER': config('PG_USER'),
-        'PASSWORD': config('PG_PASS'),
-        'HOST': config('PG_HOST'),
-        'PORT': config('PG_PORT', cast=int),
+# --- Base de datos ---
+if config('DATABASE_URL', default=None):
+    DATABASES = {
+        'default': dj_database_url.config(conn_max_age=600, ssl_require=True)
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': config('PG_NAME', default='smartsales'),
+            'USER': config('PG_USER', default='postgres'),
+            'PASSWORD': config('PG_PASS', default='12345'),
+            'HOST': config('PG_HOST', default='localhost'),
+            'PORT': config('PG_PORT', default='5432'),
+        }
+    }
 
 # --- Password validators ---
 AUTH_PASSWORD_VALIDATORS = [
@@ -140,6 +148,14 @@ SPECTACULAR_SETTINGS = {
 }
 
 # --- CORS para el front ---
-CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', cast=Csv(), default='http://localhost:5173')
+CORS_ALLOWED_ORIGINS = config(
+    'CORS_ALLOWED_ORIGINS',
+    cast=Csv(),
+    default='http://localhost:5173, http://127.0.0.1:5173, https://smartsalesbackend.onrender.com'
+)
+CSRF_TRUSTED_ORIGINS = config(
+    'CSRF_TRUSTED_ORIGINS',
+    cast=Csv(),
+    default='https://smartsalesbackend.onrender.com'
+)
 CORS_ALLOW_CREDENTIALS = config('CORS_ALLOW_CREDENTIALS', default=False, cast=bool)
-CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', cast=Csv(), default='')

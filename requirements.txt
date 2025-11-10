@@ -27,3 +27,9 @@ sqlparse==0.5.3
 threadpoolctl==3.6.0
 tzdata==2025.2
 uritemplate==4.2.0
+gunicorn
+psycopg2-binary
+dj-database-url
+django-cors-headers
+whitenoise
+python-decouple
