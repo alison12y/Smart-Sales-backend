@@ -11,6 +11,9 @@ class ClienteViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['ciudad', 'ci_nit', 'user']
 
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
     # limitar que un usuario "cliente" solo vea/edite su perfil.
     # Descomentar para activar esa restricción:
     # def get_queryset(self):
