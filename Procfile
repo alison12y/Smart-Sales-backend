@@ -1,1 +1,1 @@
-web: gunicorn SmartSalesBackend.wsgi
+web: gunicorn SmartSalesBackend.wsgi:application --bind 0.0.0.0:$PORT
