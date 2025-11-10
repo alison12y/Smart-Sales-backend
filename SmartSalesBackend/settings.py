@@ -152,14 +152,16 @@ SPECTACULAR_SETTINGS = {
 }
 
 # --- CORS para el front ---
-CORS_ALLOWED_ORIGINS = config(
-    'CORS_ALLOWED_ORIGINS',
-    cast=Csv(),
-    default='http://localhost:5173, http://127.0.0.1:5173, https://smartsalesbackend.onrender.com'
-)
-CSRF_TRUSTED_ORIGINS = config(
-    'CSRF_TRUSTED_ORIGINS',
-    cast=Csv(),
-    default='https://smartsalesbackend.onrender.com'
-)
-CORS_ALLOW_CREDENTIALS = config('CORS_ALLOW_CREDENTIALS', default=False, cast=bool)
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://smart-sales-backend.onrender.com",
+    "https://smart-sales365-frontend.vercel.app",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://smart-sales-backend.onrender.com",
+    "https://smart-sales365-frontend.vercel.app",
+]
+
+CORS_ALLOW_CREDENTIALS = True
