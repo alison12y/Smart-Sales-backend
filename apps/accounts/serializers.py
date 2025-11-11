@@ -51,7 +51,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             'ciudad': validated_data.get('ciudad', ''),
         }
         user = User.objects.create_user(**user_data)
-        Cliente.objects.update_or_create(user=user, defaults=cliente_data)
+        # Cliente.objects.update_or_create(user=user, defaults=cliente_data)
         return user
     
     
