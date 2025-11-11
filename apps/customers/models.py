@@ -24,7 +24,7 @@ class Cliente(models.Model):
 
 
 # Crea un cliente automático al registrar un nuevo usuario normal
-@receiver(post_save, sender=settings.AUTH_USER_MODEL)
-def create_cliente_for_user(sender, instance, created, **kwargs):
-    if created and not instance.is_staff:
-        Cliente.objects.create(user=instance)
+# @receiver(post_save, sender=settings.AUTH_USER_MODEL)
+# def create_cliente_for_user(sender, instance, created, **kwargs):
+#    if created and not instance.is_staff:
+#       Cliente.objects.create(user=instance)
